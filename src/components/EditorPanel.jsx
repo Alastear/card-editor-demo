@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import CropModal from './CropModal'
 
 const BG_OPTIONS = [
   { value: 'red', label: 'Red', bg: 'linear-gradient(135deg, #7a0000, #c0392b)', text: '#fff' },
@@ -82,15 +83,17 @@ const NumberSelect = ({ label, value, min = 0, max = 3, onChange }) => (
   </div>
 )
 
-// Image upload button
-const ImageUpload = ({ label, value, onChange, aspectRatio = 'square', hint = '' }) => {
+// Image upload with crop
+const ImageUpload = ({ label, value, onChange, aspect = 1, cropTitle = 'Crop Image', hint = '', previewHeight = 120 }) => {
   const inputRef = useRef(null)
+  const [pendingSrc, setPendingSrc] = useState(null)
 
   const handleFile = (e) => {
     const file = e.target.files[0]
+    e.target.value = ''
     if (!file) return
     const reader = new FileReader()
-    reader.onload = ev => onChange(ev.target.result)
+    reader.onload = ev => setPendingSrc(ev.target.result)
     reader.readAsDataURL(file)
   }
 
@@ -100,12 +103,16 @@ const ImageUpload = ({ label, value, onChange, aspectRatio = 'square', hint = ''
       <div
         onClick={() => inputRef.current?.click()}
         className="relative cursor-pointer rounded-lg border-2 border-dashed border-gray-600 hover:border-blue-500 transition-colors overflow-hidden flex items-center justify-center group"
-        style={{ height: aspectRatio === 'square' ? 120 : 72, background: '#1a1d2e' }}
+        style={{ height: previewHeight, background: '#1a1d2e' }}
       >
         {value ? (
           <>
             <img src={value} alt="preview" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
               <span className="text-white text-xs font-cinzel">Change</span>
             </div>
           </>
@@ -113,8 +120,7 @@ const ImageUpload = ({ label, value, onChange, aspectRatio = 'square', hint = ''
           <div className="flex flex-col items-center gap-2 text-gray-500 group-hover:text-blue-400 transition-colors">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
+              <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <span className="text-xs font-cinzel">{hint || 'Click to upload'}</span>
           </div>
@@ -122,12 +128,30 @@ const ImageUpload = ({ label, value, onChange, aspectRatio = 'square', hint = ''
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       </div>
       {value && (
-        <button
-          onClick={() => onChange(null)}
-          className="mt-1 text-xs text-red-400 hover:text-red-300 transition-colors font-inter"
-        >
-          × Remove image
-        </button>
+        <div className="mt-1 flex gap-3">
+          <button
+            onClick={() => inputRef.current?.click()}
+            className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-inter"
+          >
+            ✎ Recrop
+          </button>
+          <button
+            onClick={() => onChange(null)}
+            className="text-xs text-red-400 hover:text-red-300 transition-colors font-inter"
+          >
+            × Remove
+          </button>
+        </div>
+      )}
+
+      {pendingSrc && (
+        <CropModal
+          imageSrc={pendingSrc}
+          aspect={aspect}
+          title={cropTitle}
+          onConfirm={cropped => { onChange(cropped); setPendingSrc(null) }}
+          onCancel={() => setPendingSrc(null)}
+        />
       )}
     </div>
   )
@@ -232,8 +256,10 @@ export default function EditorPanel({ cardData, updateCard }) {
               label="Series Icon"
               value={seriesIcon}
               onChange={v => updateCard('seriesIcon', v)}
-              aspectRatio="wide"
+              aspect={1}
+              cropTitle="Crop Series Icon"
               hint="Upload series logo"
+              previewHeight={72}
             />
           </div>
         </div>
@@ -245,8 +271,10 @@ export default function EditorPanel({ cardData, updateCard }) {
             label="Card Image"
             value={cardImage}
             onChange={v => updateCard('cardImage', v)}
-            aspectRatio="square"
+            aspect={1.38}
+            cropTitle="Crop Card Artwork"
             hint="Upload card artwork"
+            previewHeight={120}
           />
         </div>
 
