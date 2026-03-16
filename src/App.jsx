@@ -39,6 +39,14 @@ function App() {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight,
+        x: 0,
+        y: 0,
+        width: cardRef.current.offsetWidth,
+        height: cardRef.current.offsetHeight,
       })
       const link = document.createElement('a')
       link.download = `${cardData.name || 'card'}.png`
