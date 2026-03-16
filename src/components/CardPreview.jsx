@@ -8,11 +8,11 @@ const BG_THEMES = {
   red: {
     cardBg: 'linear-gradient(160deg, #2a0000 0%, #5a0000 40%, #900000 100%)',
     patternClass: 'card-pattern-red',
-    topColor: 'rgba(42,0,0,1)',
-    bottomColor: 'rgba(20,0,0,0.97)',
+    topColor: 'rgba(42,0,0,0.82)',
+    bottomColor: 'rgba(20,0,0,0.88)',
     textColor: '#ffe4d6',
     subColor: '#ffaa80',
-    boxBg: 'rgba(30, 0, 0, 0.65)',
+    boxBg: 'rgba(30, 0, 0, 0.52)',
     accentLight: 'rgba(255, 100, 50, 0.3)',
     innerBorderTint: 'rgba(255,100,50,0.15)',
     emptyTint: '#5a0000',
@@ -20,11 +20,11 @@ const BG_THEMES = {
   yellow: {
     cardBg: 'linear-gradient(160deg, #150b00 0%, #3a1e00 40%, #6a3800 100%)',
     patternClass: 'card-pattern-yellow',
-    topColor: 'rgba(21,11,0,1)',
-    bottomColor: 'rgba(15,8,0,0.97)',
+    topColor: 'rgba(21,11,0,0.82)',
+    bottomColor: 'rgba(15,8,0,0.88)',
     textColor: '#fff3c0',
     subColor: '#ffc840',
-    boxBg: 'rgba(25, 12, 0, 0.65)',
+    boxBg: 'rgba(25, 12, 0, 0.52)',
     accentLight: 'rgba(255, 200, 50, 0.25)',
     innerBorderTint: 'rgba(255,200,50,0.12)',
     emptyTint: '#3a1e00',
@@ -32,11 +32,11 @@ const BG_THEMES = {
   blue: {
     cardBg: 'linear-gradient(160deg, #000410 0%, #000d38 40%, #001870 100%)',
     patternClass: 'card-pattern-blue',
-    topColor: 'rgba(0,4,16,1)',
-    bottomColor: 'rgba(0,3,12,0.97)',
+    topColor: 'rgba(0,4,16,0.82)',
+    bottomColor: 'rgba(0,3,12,0.88)',
     textColor: '#d0e8ff',
     subColor: '#80b8ff',
-    boxBg: 'rgba(0, 5, 35, 0.65)',
+    boxBg: 'rgba(0, 5, 35, 0.52)',
     accentLight: 'rgba(80, 140, 255, 0.25)',
     innerBorderTint: 'rgba(80,140,255,0.12)',
     emptyTint: '#001060',
@@ -44,11 +44,11 @@ const BG_THEMES = {
   white: {
     cardBg: 'linear-gradient(160deg, #d0d0e0 0%, #e8e8f4 40%, #ffffff 100%)',
     patternClass: 'card-pattern-white',
-    topColor: 'rgba(210,210,228,1)',
-    bottomColor: 'rgba(200,200,220,0.97)',
+    topColor: 'rgba(210,210,228,0.82)',
+    bottomColor: 'rgba(200,200,220,0.88)',
     textColor: '#1a1a3a',
     subColor: '#445',
-    boxBg: 'rgba(210, 210, 230, 0.7)',
+    boxBg: 'rgba(210, 210, 230, 0.55)',
     accentLight: 'rgba(140,140,210,0.2)',
     innerBorderTint: 'rgba(100,100,180,0.1)',
     emptyTint: '#c8c8e0',
@@ -56,11 +56,11 @@ const BG_THEMES = {
   black: {
     cardBg: 'linear-gradient(160deg, #000000 0%, #0a0a0a 40%, #181818 100%)',
     patternClass: 'card-pattern-black',
-    topColor: 'rgba(0,0,0,1)',
-    bottomColor: 'rgba(0,0,0,0.97)',
+    topColor: 'rgba(0,0,0,0.82)',
+    bottomColor: 'rgba(0,0,0,0.88)',
     textColor: '#c8c8c8',
     subColor: '#888888',
-    boxBg: 'rgba(20, 20, 20, 0.7)',
+    boxBg: 'rgba(20, 20, 20, 0.55)',
     accentLight: 'rgba(180,180,180,0.15)',
     innerBorderTint: 'rgba(180,180,180,0.06)',
     emptyTint: '#111111',
@@ -165,13 +165,13 @@ function CardShell({ theme, border, cardImage, children }) {
             </div>
         }
 
-        {/* Top gradient */}
-        <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: '42%', zIndex: 2,
-          background: `linear-gradient(to bottom, ${theme.topColor} 0%, ${theme.topColor.replace(',1)', ',0.85)')} 30%, ${theme.topColor.replace(',1)', ',0.35)')} 65%, transparent 100%)` }} />
+        {/* Top gradient — covers header area only */}
+        <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: '32%', zIndex: 2,
+          background: `linear-gradient(to bottom, ${theme.topColor} 0%, ${theme.topColor.replace(/[\d.]+\)$/, '0.55)')} 40%, ${theme.topColor.replace(/[\d.]+\)$/, '0.18)')} 75%, transparent 100%)` }} />
 
-        {/* Bottom gradient */}
-        <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: '65%', zIndex: 2,
-          background: `linear-gradient(to top, ${theme.bottomColor} 0%, ${theme.bottomColor.replace(',0.97)', ',0.9)')} 25%, ${theme.bottomColor.replace(',0.97)', ',0.7)')} 50%, ${theme.bottomColor.replace(',0.97)', ',0.25)')} 75%, transparent 100%)` }} />
+        {/* Bottom gradient — covers stats/ability area */}
+        <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: '58%', zIndex: 2,
+          background: `linear-gradient(to top, ${theme.bottomColor} 0%, ${theme.bottomColor.replace(/[\d.]+\)$/, '0.78)')} 25%, ${theme.bottomColor.replace(/[\d.]+\)$/, '0.48)')} 50%, ${theme.bottomColor.replace(/[\d.]+\)$/, '0.16)')} 78%, transparent 100%)` }} />
 
         {/* Content */}
         <div className="absolute inset-0" style={{ zIndex: 3 }}>{children}</div>
