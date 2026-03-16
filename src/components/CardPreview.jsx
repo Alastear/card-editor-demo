@@ -171,7 +171,7 @@ const DotLevel = ({ value, max = 3, color }) => (
 const CardPreview = forwardRef(function CardPreview({ cardData }, ref) {
   const {
     name, seriesIcon, cardImage, quote, level, cost, power,
-    abilityText, cardNumber, rarity, triggerStars, bgColor, borderStyle,
+    abilityText, cardNumber, rarity, triggerStars, triggerIcon, bgColor, borderStyle,
   } = cardData
 
   const theme = BG_THEMES[bgColor] || BG_THEMES.blue
@@ -394,42 +394,9 @@ const CardPreview = forwardRef(function CardPreview({ cardData }, ref) {
             </div>
 
             {/* ── ROW 5: Bottom Bar ── */}
-            <div className="flex items-center gap-1.5" style={{ height: 26 }}>
-              {/* Card Number Pill */}
-              <div
-                className="px-2 flex items-center justify-center"
-                style={{
-                  height: 22,
-                  background: theme.boxBg,
-                  border: `1.5px solid ${border.innerBorder}70`,
-                  borderRadius: 20,
-                  minWidth: 72,
-                }}
-              >
-                <span className="text-[9px] font-cinzel font-bold tracking-wider" style={{ color: theme.subColor }}>
-                  {cardNumber || 'XXX-000'}
-                </span>
-              </div>
+            <div className="flex items-center gap-1.5" style={{ height: 38 }}>
 
-              {/* Rarity Pill */}
-              <div
-                className="flex-1 flex items-center justify-center"
-                style={{
-                  height: 22,
-                  background: theme.boxBg,
-                  border: `1.5px solid ${border.innerBorder}70`,
-                  borderRadius: 20,
-                }}
-              >
-                <span
-                  className="text-[10px] font-cinzel font-black tracking-[0.2em]"
-                  style={{ color: theme.textColor }}
-                >
-                  {rarity || 'C'}
-                </span>
-              </div>
-
-              {/* Trigger Stars */}
+              {/* Trigger Stars — left */}
               <div className="flex items-center gap-0.5 flex-shrink-0">
                 {[1, 2].map(i => (
                   <StarIcon
@@ -439,6 +406,46 @@ const CardPreview = forwardRef(function CardPreview({ cardData }, ref) {
                   />
                 ))}
               </div>
+
+              {/* Card Number + Rarity combined pill — center */}
+              <div
+                className="flex-1 flex items-center justify-center gap-1.5 px-2"
+                style={{
+                  height: 22,
+                  background: theme.boxBg,
+                  border: `1.5px solid ${border.innerBorder}70`,
+                  borderRadius: 20,
+                }}
+              >
+                <span className="text-[9px] font-cinzel font-bold tracking-wider" style={{ color: theme.subColor }}>
+                  {cardNumber || 'XXX-000'}
+                </span>
+                <span style={{ color: border.innerBorder, fontSize: 8 }}>·</span>
+                <span className="text-[10px] font-cinzel font-black tracking-[0.15em]" style={{ color: theme.textColor }}>
+                  {rarity || 'C'}
+                </span>
+              </div>
+
+              {/* Trigger Icon Circle — right */}
+              <div
+                className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: triggerIcon ? 'transparent' : theme.boxBg,
+                  border: `2px solid ${border.innerBorder}`,
+                  boxShadow: `0 0 8px ${theme.accentLight}, inset 0 0 6px rgba(0,0,0,0.4)`,
+                }}
+              >
+                {triggerIcon ? (
+                  <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={theme.subColor} opacity="0.4">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                  </svg>
+                )}
+              </div>
+
             </div>
 
           </div>

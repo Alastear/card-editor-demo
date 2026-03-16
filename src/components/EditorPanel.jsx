@@ -157,6 +157,76 @@ const ImageUpload = ({ label, value, onChange, aspect = 1, cropTitle = 'Crop Ima
   )
 }
 
+// Circular trigger icon upload
+const TriggerIconUpload = ({ value, onChange }) => {
+  const inputRef = useRef(null)
+  const [pendingSrc, setPendingSrc] = useState(null)
+
+  const handleFile = (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => setPendingSrc(ev.target.result)
+    reader.readAsDataURL(file)
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div
+        onClick={() => inputRef.current?.click()}
+        className="relative group"
+        style={{
+          width: 56, height: 56,
+          background: value ? 'transparent' : '#1a1d2e',
+          border: `2px ${value ? 'solid' : 'dashed'} ${value ? '#ffd700' : '#444'}`,
+          borderRadius: '50%',
+          overflow: 'hidden',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: value ? '0 0 10px rgba(255,215,0,0.3)' : 'none',
+        }}
+      >
+        {value ? (
+          <>
+            <img src={value} alt="trigger icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-0.5 text-gray-600 group-hover:text-blue-400 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </div>
+        )}
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      </div>
+      {value && (
+        <button onClick={() => onChange(null)} className="text-[10px] text-red-400 hover:text-red-300 font-inter">
+          × Remove
+        </button>
+      )}
+      {pendingSrc && (
+        <CropModal
+          imageSrc={pendingSrc}
+          aspect={1}
+          title="Crop Trigger Icon"
+          onConfirm={cropped => { onChange(cropped); setPendingSrc(null) }}
+          onCancel={() => setPendingSrc(null)}
+        />
+      )}
+    </div>
+  )
+}
+
 // Section header
 const SectionHeader = ({ icon, title }) => (
   <div className="flex items-center gap-2 mb-3 mt-1">
@@ -169,7 +239,7 @@ const SectionHeader = ({ icon, title }) => (
 export default function EditorPanel({ cardData, updateCard }) {
   const {
     name, seriesIcon, cardImage, quote, level, cost, power,
-    abilityText, cardNumber, rarity, triggerStars, bgColor, borderStyle,
+    abilityText, cardNumber, rarity, triggerStars, triggerIcon, bgColor, borderStyle,
   } = cardData
 
   return (
@@ -380,28 +450,36 @@ export default function EditorPanel({ cardData, updateCard }) {
             </div>
           </div>
 
-          <div>
-            <Label>Trigger Stars (0–2)</Label>
-            <div className="flex gap-3 mt-1">
-              {[0, 1, 2].map(n => (
-                <button
-                  key={n}
-                  onClick={() => updateCard('triggerStars', n)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-cinzel transition-all"
-                  style={{
-                    background: triggerStars === n ? '#2a2410' : '#1a1d2e',
-                    border: `1.5px solid ${triggerStars === n ? '#ffd700' : '#333'}`,
-                    boxShadow: triggerStars === n ? '0 0 8px rgba(255,215,0,0.3)' : 'none',
-                    color: triggerStars === n ? '#ffd700' : '#666',
-                  }}
-                >
-                  {n === 0 ? (
-                    <span className="text-xs">None</span>
-                  ) : (
-                    <span>{'★'.repeat(n)}</span>
-                  )}
-                </button>
-              ))}
+          <div className="flex gap-4 items-start">
+            {/* Stars selector */}
+            <div className="flex-1">
+              <Label>Trigger Stars (0–2)</Label>
+              <div className="flex gap-2 mt-1">
+                {[0, 1, 2].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => updateCard('triggerStars', n)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-cinzel transition-all"
+                    style={{
+                      background: triggerStars === n ? '#2a2410' : '#1a1d2e',
+                      border: `1.5px solid ${triggerStars === n ? '#ffd700' : '#333'}`,
+                      boxShadow: triggerStars === n ? '0 0 8px rgba(255,215,0,0.3)' : 'none',
+                      color: triggerStars === n ? '#ffd700' : '#666',
+                    }}
+                  >
+                    {n === 0 ? <span className="text-xs">None</span> : <span>{'★'.repeat(n)}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Trigger Icon upload */}
+            <div className="flex-shrink-0">
+              <Label>Trigger Icon</Label>
+              <TriggerIconUpload
+                value={triggerIcon}
+                onChange={v => updateCard('triggerIcon', v)}
+              />
             </div>
           </div>
         </div>

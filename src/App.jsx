@@ -15,6 +15,7 @@ const DEFAULT_CARD = {
   cardNumber: 'DK-001',
   rarity: 'R',
   triggerStars: 1,
+  triggerIcon: null,
   bgColor: 'blue',
   borderStyle: 'gold',
 }
