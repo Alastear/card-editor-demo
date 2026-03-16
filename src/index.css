@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #0f1117;
+  color: #e2e8f0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Rainbow border animation */
+@keyframes rainbow-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.rainbow-border {
+  background: linear-gradient(135deg, #ff0000, #ff7700, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+  background-size: 300% 300%;
+  animation: rainbow-border 3s linear infinite;
+}
+
+/* Shimmer for gold/silver */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Card pattern overlays */
+.card-pattern-red {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 18px,
+      rgba(255, 80, 30, 0.06) 18px,
+      rgba(255, 80, 30, 0.06) 20px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 18px,
+      rgba(255, 80, 30, 0.04) 18px,
+      rgba(255, 80, 30, 0.04) 20px
+    );
+}
+
+.card-pattern-yellow {
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 220, 0, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(255, 160, 0, 0.10) 0%, transparent 50%),
+    repeating-linear-gradient(
+      60deg,
+      transparent,
+      transparent 22px,
+      rgba(255, 200, 50, 0.05) 22px,
+      rgba(255, 200, 50, 0.05) 24px
+    );
+}
+
+.card-pattern-blue {
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(100, 180, 255, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(50, 100, 200, 0.10) 0%, transparent 40%),
+    repeating-linear-gradient(
+      30deg,
+      transparent,
+      transparent 20px,
+      rgba(50, 130, 255, 0.04) 20px,
+      rgba(50, 130, 255, 0.04) 22px
+    );
+}
+
+.card-pattern-white {
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(200, 200, 255, 0.25) 0%, transparent 60%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 24px,
+      rgba(100, 100, 180, 0.05) 24px,
+      rgba(100, 100, 180, 0.05) 26px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 24px,
+      rgba(100, 100, 180, 0.05) 24px,
+      rgba(100, 100, 180, 0.05) 26px
+    );
+}
+
+.card-pattern-black {
+  background-image:
+    radial-gradient(ellipse at 50% 10%, rgba(180, 180, 200, 0.08) 0%, transparent 50%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 14px,
+      rgba(255, 255, 255, 0.025) 14px,
+      rgba(255, 255, 255, 0.025) 16px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 14px,
+      rgba(255, 255, 255, 0.02) 14px,
+      rgba(255, 255, 255, 0.02) 16px
+    );
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1d27;
+}
+::-webkit-scrollbar-thumb {
+  background: #3d4460;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5a6180;
+}
+
+/* Upload button hover */
+.upload-circle:hover .upload-overlay {
+  opacity: 1;
+}
