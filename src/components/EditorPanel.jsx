@@ -227,6 +227,21 @@ const TriggerIconUpload = ({ value, onChange }) => {
   )
 }
 
+// Symbol quick-insert buttons
+const SymbolButtons = ({ abilityText, updateCard }) => (
+  <div className="mt-1.5 flex flex-wrap gap-1">
+    {['【AUTO】', '【CONT】', '【ACT】', '【TRIGGER】', '❤️', '⚔️', '✨', '🌟'].map(sym => (
+      <button
+        key={sym}
+        onClick={() => updateCard('abilityText', abilityText + sym)}
+        className="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-xs text-gray-300 transition-colors font-inter"
+      >
+        {sym}
+      </button>
+    ))}
+  </div>
+)
+
 // Section header
 const SectionHeader = ({ icon, title }) => (
   <div className="flex items-center gap-2 mb-3 mt-1">
@@ -236,11 +251,24 @@ const SectionHeader = ({ icon, title }) => (
   </div>
 )
 
+const CARD_TYPES = [
+  { value: 'character', label: 'Character', icon: '⚔️' },
+  { value: 'event',     label: 'Event',     icon: '✨' },
+  { value: 'stage',     label: 'Stage',     icon: '🎭' },
+]
+
 export default function EditorPanel({ cardData, updateCard }) {
   const {
+    cardType = 'character',
     name, seriesIcon, cardImage, quote, level, cost, power,
     abilityText, cardNumber, rarity, triggerStars, triggerIcon, bgColor, borderStyle,
   } = cardData
+
+  const isCharacter = cardType === 'character'
+  const isStage     = cardType === 'stage'
+
+  // Stage crop ratio is landscape (520x370)
+  const imageCropAspect = isStage ? 520 / 370 : 370 / 520
 
   return (
     <div
@@ -259,6 +287,29 @@ export default function EditorPanel({ cardData, updateCard }) {
       </div>
 
       <div className="p-5 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+
+        {/* ── CARD TYPE ── */}
+        <div>
+          <SectionHeader icon="🃏" title="Card Type" />
+          <div className="flex gap-2">
+            {CARD_TYPES.map(t => (
+              <button
+                key={t.value}
+                onClick={() => updateCard('cardType', t.value)}
+                className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-xs font-cinzel font-bold transition-all"
+                style={{
+                  background: cardType === t.value ? 'rgba(79,142,255,0.15)' : '#1a1d2e',
+                  border: `1.5px solid ${cardType === t.value ? '#4f8eff' : '#333'}`,
+                  color: cardType === t.value ? '#a8c8ff' : '#666',
+                  boxShadow: cardType === t.value ? '0 0 12px rgba(79,142,255,0.25)' : 'none',
+                }}
+              >
+                <span className="text-base">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* ── THEME ── */}
         <div>
@@ -307,10 +358,9 @@ export default function EditorPanel({ cardData, updateCard }) {
           </div>
         </div>
 
-        {/* ── HEADER ── */}
+        {/* ── IDENTITY ── */}
         <div>
           <SectionHeader icon="📛" title="Card Identity" />
-
           <div className="space-y-3">
             <div>
               <Label>Card Name</Label>
@@ -321,7 +371,6 @@ export default function EditorPanel({ cardData, updateCard }) {
                 maxLength={40}
               />
             </div>
-
             <ImageUpload
               label="Series Icon"
               value={seriesIcon}
@@ -334,91 +383,86 @@ export default function EditorPanel({ cardData, updateCard }) {
           </div>
         </div>
 
-        {/* ── IMAGE ── */}
+        {/* ── ILLUSTRATION ── */}
         <div>
           <SectionHeader icon="🖼️" title="Illustration" />
           <ImageUpload
             label="Card Image"
             value={cardImage}
             onChange={v => updateCard('cardImage', v)}
-            aspect={370 / 520}
+            aspect={imageCropAspect}
             cropTitle="Crop Card Artwork"
             hint="Upload card artwork"
-            previewHeight={120}
+            previewHeight={isStage ? 80 : 120}
           />
         </div>
 
-        {/* ── QUOTE ── */}
+        {/* ── FLAVOR TEXT ── */}
         <div>
           <SectionHeader icon="💬" title="Flavor Text" />
-          <div>
-            <Label>Quote / Hint (optional)</Label>
-            <TextInput
-              value={quote}
-              onChange={v => updateCard('quote', v)}
-              placeholder="Leave blank to hide..."
-              maxLength={80}
-            />
-          </div>
+          <Label>Quote / Hint (optional)</Label>
+          <TextInput
+            value={quote}
+            onChange={v => updateCard('quote', v)}
+            placeholder="Leave blank to hide..."
+            maxLength={80}
+          />
         </div>
 
-        {/* ── STATS ── */}
-        <div>
-          <SectionHeader icon="⚔️" title="Card Stats" />
-          <div className="grid grid-cols-2 gap-4">
-            <NumberSelect
-              label="Level"
-              value={level}
-              min={0} max={3}
-              onChange={v => updateCard('level', v)}
-            />
-            <NumberSelect
-              label="Cost"
-              value={cost}
-              min={0} max={3}
-              onChange={v => updateCard('cost', v)}
-            />
-          </div>
+        {/* ── STATS (hidden for Stage) ── */}
+        {!isStage && (
+          <div>
+            <SectionHeader icon="⚔️" title="Card Stats" />
+            <div className="grid grid-cols-2 gap-4">
+              <NumberSelect label="Level" value={level} min={0} max={3}
+                onChange={v => updateCard('level', v)} />
+              <NumberSelect label="Cost" value={cost} min={0} max={3}
+                onChange={v => updateCard('cost', v)} />
+            </div>
 
-          <div className="mt-4">
-            <Label>Power (max 99999)</Label>
-            <TextInput
-              value={power}
-              onChange={v => {
-                const num = v.replace(/[^0-9]/g, '').slice(0, 5)
-                updateCard('power', num)
-              }}
-              placeholder="5500"
-              maxLength={5}
-            />
-          </div>
+            {/* Power — Character only */}
+            {isCharacter && (
+              <div className="mt-4">
+                <Label>Power (max 99999)</Label>
+                <TextInput
+                  value={power}
+                  onChange={v => updateCard('power', v.replace(/[^0-9]/g, '').slice(0, 5))}
+                  placeholder="5500"
+                  maxLength={5}
+                />
+              </div>
+            )}
 
-          <div className="mt-4">
-            <Label>Ability Text</Label>
+            <div className="mt-4">
+              <Label>Ability Text</Label>
+              <TextArea
+                value={abilityText}
+                onChange={v => updateCard('abilityText', v)}
+                placeholder="【AUTO】Effect description..."
+                rows={5}
+              />
+              <SymbolButtons abilityText={abilityText} updateCard={updateCard} />
+            </div>
+          </div>
+        )}
+
+        {/* ── ABILITY (Stage only) ── */}
+        {isStage && (
+          <div>
+            <SectionHeader icon="⚔️" title="Ability" />
             <TextArea
               value={abilityText}
               onChange={v => updateCard('abilityText', v)}
-              placeholder="【AUTO】Effect description... Supports 【CONT】【AUTO】【ACT】 symbols"
-              rows={5}
+              placeholder="【TRIGGER】Effect description..."
+              rows={4}
             />
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {['【AUTO】', '【CONT】', '【ACT】', '【TRIGGER】', '❤️', '⚔️', '✨', '🌟'].map(sym => (
-                <button
-                  key={sym}
-                  onClick={() => updateCard('abilityText', abilityText + sym)}
-                  className="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-xs text-gray-300 transition-colors font-inter"
-                >
-                  {sym}
-                </button>
-              ))}
-            </div>
+            <SymbolButtons abilityText={abilityText} updateCard={updateCard} />
           </div>
-        </div>
+        )}
 
         {/* ── CARD INFO ── */}
         <div>
-          <SectionHeader icon="🃏" title="Card Info" />
-
+          <SectionHeader icon="📋" title="Card Info" />
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <Label>Card Number</Label>
@@ -433,16 +477,13 @@ export default function EditorPanel({ cardData, updateCard }) {
               <Label>Rarity</Label>
               <div className="grid grid-cols-4 gap-1">
                 {RARITY_OPTIONS.map(r => (
-                  <button
-                    key={r}
-                    onClick={() => updateCard('rarity', r)}
+                  <button key={r} onClick={() => updateCard('rarity', r)}
                     className="py-1.5 rounded text-xs font-cinzel font-bold transition-all"
                     style={{
                       background: rarity === r ? '#4f8eff' : '#1e2133',
                       color: rarity === r ? '#fff' : '#888',
                       border: `1px solid ${rarity === r ? '#4f8eff' : '#333'}`,
-                    }}
-                  >
+                    }}>
                     {r}
                   </button>
                 ))}
@@ -450,38 +491,40 @@ export default function EditorPanel({ cardData, updateCard }) {
             </div>
           </div>
 
-          <div className="flex gap-4 items-start">
-            {/* Stars selector */}
-            <div className="flex-1">
-              <Label>Trigger Stars (0–2)</Label>
-              <div className="flex gap-2 mt-1">
-                {[0, 1, 2].map(n => (
-                  <button
-                    key={n}
-                    onClick={() => updateCard('triggerStars', n)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-cinzel transition-all"
-                    style={{
-                      background: triggerStars === n ? '#2a2410' : '#1a1d2e',
-                      border: `1.5px solid ${triggerStars === n ? '#ffd700' : '#333'}`,
-                      boxShadow: triggerStars === n ? '0 0 8px rgba(255,215,0,0.3)' : 'none',
-                      color: triggerStars === n ? '#ffd700' : '#666',
-                    }}
-                  >
-                    {n === 0 ? <span className="text-xs">None</span> : <span>{'★'.repeat(n)}</span>}
-                  </button>
-                ))}
+          {/* Trigger Stars + Icon — Character only */}
+          {isCharacter && (
+            <div className="flex gap-4 items-start">
+              <div className="flex-1">
+                <Label>Trigger Stars (0–2)</Label>
+                <div className="flex gap-2 mt-1">
+                  {[0, 1, 2].map(n => (
+                    <button key={n} onClick={() => updateCard('triggerStars', n)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-cinzel transition-all"
+                      style={{
+                        background: triggerStars === n ? '#2a2410' : '#1a1d2e',
+                        border: `1.5px solid ${triggerStars === n ? '#ffd700' : '#333'}`,
+                        boxShadow: triggerStars === n ? '0 0 8px rgba(255,215,0,0.3)' : 'none',
+                        color: triggerStars === n ? '#ffd700' : '#666',
+                      }}>
+                      {n === 0 ? <span className="text-xs">None</span> : <span>{'★'.repeat(n)}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <Label>Trigger Icon</Label>
+                <TriggerIconUpload value={triggerIcon} onChange={v => updateCard('triggerIcon', v)} />
               </div>
             </div>
+          )}
 
-            {/* Trigger Icon upload */}
-            <div className="flex-shrink-0">
+          {/* Trigger Icon only — Stage */}
+          {isStage && (
+            <div>
               <Label>Trigger Icon</Label>
-              <TriggerIconUpload
-                value={triggerIcon}
-                onChange={v => updateCard('triggerIcon', v)}
-              />
+              <TriggerIconUpload value={triggerIcon} onChange={v => updateCard('triggerIcon', v)} />
             </div>
-          </div>
+          )}
         </div>
 
       </div>

@@ -4,6 +4,7 @@ import CardPreview from './components/CardPreview'
 import EditorPanel from './components/EditorPanel'
 
 const DEFAULT_CARD = {
+  cardType: 'character',
   name: 'Dragon Knight',
   seriesIcon: null,
   cardImage: null,

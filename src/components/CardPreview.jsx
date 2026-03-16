@@ -156,327 +156,270 @@ const FrameBox = ({ children, className = '', style = {}, borderColor, innerBord
   </div>
 )
 
+// ── Shared card shell (border + inner bg + full-bleed image + gradients) ──
+function CardShell({ theme, border, cardImage, children }) {
+  const borderGradientStyle = border.isRainbow ? {} : { background: border.gradient }
+  return (
+    <div
+      className={border.isRainbow ? 'rainbow-border' : ''}
+      style={{ position: 'absolute', inset: 0, borderRadius: 16, padding: 4, boxShadow: border.shadow, ...borderGradientStyle }}
+    >
+      <div className={`relative w-full h-full overflow-hidden ${theme.patternClass}`}
+        style={{ borderRadius: 13, background: theme.cardBg }}>
+
+        {/* Full-bleed image */}
+        {cardImage
+          ? <img src={cardImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1 }} />
+          : <div className="absolute inset-0 flex flex-col items-center justify-center gap-3" style={{ zIndex: 1, background: `radial-gradient(ellipse at 50% 40%, ${theme.emptyTint}88 0%, transparent 70%)` }}>
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={theme.subColor} strokeWidth="0.8" opacity="0.2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span className="text-xs font-cinzel tracking-widest" style={{ color: theme.subColor, opacity: 0.18 }}>ILLUSTRATION</span>
+            </div>
+        }
+
+        {/* Top gradient */}
+        <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: '42%', zIndex: 2,
+          background: `linear-gradient(to bottom, ${theme.topColor} 0%, ${theme.topColor.replace(',1)', ',0.85)')} 30%, ${theme.topColor.replace(',1)', ',0.35)')} 65%, transparent 100%)` }} />
+
+        {/* Bottom gradient */}
+        <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: '65%', zIndex: 2,
+          background: `linear-gradient(to top, ${theme.bottomColor} 0%, ${theme.bottomColor.replace(',0.97)', ',0.9)')} 25%, ${theme.bottomColor.replace(',0.97)', ',0.7)')} 50%, ${theme.bottomColor.replace(',0.97)', ',0.25)')} 75%, transparent 100%)` }} />
+
+        {/* Content */}
+        <div className="absolute inset-0" style={{ zIndex: 3 }}>{children}</div>
+
+        {/* Inner frame */}
+        <div className="absolute pointer-events-none" style={{ inset: 5, borderRadius: 9, border: `1px solid ${border.innerBorder}22`, zIndex: 10 }} />
+      </div>
+    </div>
+  )
+}
+
+// ── Shared: series icon circle ──
+function SeriesCircle({ seriesIcon, theme, border }) {
+  return (
+    <div className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+      style={{ width: 48, height: 48, background: theme.boxBg, border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 10px ${theme.accentLight}`, backdropFilter: 'blur(6px)' }}>
+      {seriesIcon
+        ? <img src={seriesIcon} alt="series" className="w-full h-full object-cover" />
+        : <div className="flex flex-col items-center gap-0.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.subColor} strokeWidth="1.5" opacity="0.6">
+              <circle cx="12" cy="8" r="4" /><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+            </svg>
+            <span className="text-[6px] font-cinzel" style={{ color: theme.subColor, opacity: 0.6 }}>ICON</span>
+          </div>
+      }
+    </div>
+  )
+}
+
+// ── Stage card (landscape 520×370) ──
+function StageCardLayout({ cardData, theme, border }) {
+  const { name, seriesIcon, quote, abilityText, cardNumber, rarity, triggerIcon } = cardData
+  return (
+    <div className="absolute inset-0 flex flex-col px-3 py-3 gap-1.5">
+      {/* Header */}
+      <div className="flex items-center gap-2" style={{ height: 44 }}>
+        <FrameBox className="flex-1" style={{ height: 38, display: 'flex', alignItems: 'center', padding: '0 10px' }}
+          borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
+          <div className="absolute inset-0 rounded-sm" style={{ background: theme.boxBg, backdropFilter: 'blur(4px)' }} />
+          <span className="font-cinzel font-bold truncate text-sm tracking-wide w-full text-center relative z-10"
+            style={{ color: theme.textColor, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+            {name || 'Stage Name'}
+          </span>
+        </FrameBox>
+        <SeriesCircle seriesIcon={seriesIcon} theme={theme} border={border} />
+      </div>
+
+      {/* Spacer — shows image */}
+      <div className="flex-1" />
+
+      {/* Quote */}
+      {quote && (
+        <div className="flex items-center justify-center px-3 mb-1"
+          style={{ height: 22, background: 'rgba(0,0,0,0.35)', borderRadius: 3, border: `1px solid ${border.innerBorder}25`, backdropFilter: 'blur(3px)' }}>
+          <span className="text-[9px] italic text-center truncate font-inter"
+            style={{ color: theme.subColor, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{quote}</span>
+        </div>
+      )}
+
+      {/* Ability + Trigger row */}
+      <div className="flex gap-2" style={{ height: 100 }}>
+        <FrameBox className="flex-1" borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
+          <div className="absolute inset-[5px] overflow-y-auto p-1.5" style={{ background: theme.boxBg, backdropFilter: 'blur(6px)' }}>
+            <p className="text-[9px] leading-relaxed font-inter whitespace-pre-wrap" style={{ color: theme.textColor }}>
+              {abilityText || ''}
+            </p>
+          </div>
+        </FrameBox>
+
+        {/* Trigger icon — tall, right side */}
+        <div className="flex-shrink-0 flex flex-col items-center justify-center gap-1">
+          <div className="rounded-full overflow-hidden flex items-center justify-center"
+            style={{ width: 52, height: 52, background: triggerIcon ? 'transparent' : theme.boxBg,
+              border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 12px ${theme.accentLight}, 0 0 4px ${border.innerBorder}50`, backdropFilter: 'blur(6px)' }}>
+            {triggerIcon
+              ? <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
+              : <svg width="22" height="22" viewBox="0 0 24 24">
+                  <polygon points="12,3 14.5,9.5 21.5,10 16.5,14.5 18.2,21.5 12,17.8 5.8,21.5 7.5,14.5 2.5,10 9.5,9.5"
+                    fill="none" stroke={theme.subColor} strokeWidth="1.2" opacity="0.4" />
+                </svg>
+            }
+          </div>
+          <span className="text-[7px] font-cinzel font-bold" style={{ color: theme.subColor, opacity: 0.7 }}>TRIGGER</span>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="flex items-center gap-2" style={{ height: 24 }}>
+        <div className="flex-1 flex items-center justify-center gap-1.5 px-2"
+          style={{ height: 22, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}55`, borderRadius: 20, backdropFilter: 'blur(6px)' }}>
+          <span className="text-[9px] font-cinzel font-bold tracking-wider" style={{ color: theme.subColor }}>{cardNumber || 'XXX-000'}</span>
+          <span style={{ color: border.innerBorder, fontSize: 9, opacity: 0.7 }}>·</span>
+          <span className="text-[10px] font-cinzel font-black tracking-[0.15em]" style={{ color: theme.textColor }}>{rarity || 'C'}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Character / Event shared layout ──
+function CharacterLayout({ cardData, theme, border }) {
+  const { name, seriesIcon, quote, level, cost, power, abilityText, cardNumber, rarity,
+          triggerStars, triggerIcon, cardType } = cardData
+  const isEvent = cardType === 'event'
+  return (
+    <div className="absolute inset-0 flex flex-col px-3 py-3 gap-0">
+      {/* Header */}
+      <div className="flex items-center gap-2" style={{ height: 48 }}>
+        <FrameBox className="flex-1" style={{ height: 40, display: 'flex', alignItems: 'center', padding: '0 10px' }}
+          borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}45`}>
+          <div className="absolute inset-0 rounded-sm" style={{ background: theme.boxBg, backdropFilter: 'blur(4px)' }} />
+          <span className="font-cinzel font-bold truncate text-sm tracking-wide w-full text-center relative z-10"
+            style={{ color: theme.textColor, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+            {name || 'Card Name'}
+          </span>
+        </FrameBox>
+        <SeriesCircle seriesIcon={seriesIcon} theme={theme} border={border} />
+      </div>
+
+      <div className="flex-1" />
+
+      {/* Quote */}
+      {quote ? (
+        <div className="flex items-center justify-center px-3 mb-1.5"
+          style={{ height: 24, background: 'rgba(0,0,0,0.35)', borderRadius: 3, border: `1px solid ${border.innerBorder}30`, backdropFilter: 'blur(3px)' }}>
+          <span className="text-[9px] italic text-center leading-tight truncate font-inter"
+            style={{ color: theme.subColor, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{quote}</span>
+        </div>
+      ) : <div style={{ height: 8 }} />}
+
+      {/* Stats row */}
+      <div className="flex gap-2 mb-2" style={{ height: 110 }}>
+        {/* Level + Cost + Power column */}
+        <div className="flex flex-col items-center gap-1" style={{ width: 60 }}>
+          <div className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
+            style={{ width: 50, height: 50, background: theme.boxBg, border: `2px solid ${border.innerBorder}`,
+              boxShadow: `0 0 10px ${theme.accentLight}, inset 0 1px 0 rgba(255,255,255,0.08)`, backdropFilter: 'blur(6px)' }}>
+            <span className="text-[7px] font-cinzel font-bold leading-none" style={{ color: theme.subColor }}>LV</span>
+            <span className="text-xl font-cinzel font-black leading-none"
+              style={{ color: theme.textColor, textShadow: `0 0 10px ${theme.accentLight}` }}>{level}</span>
+          </div>
+          <div className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
+            style={{ width: 36, height: 36, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}70`,
+              boxShadow: `0 0 7px ${theme.accentLight}`, backdropFilter: 'blur(6px)' }}>
+            <span className="text-[6.5px] font-cinzel font-bold leading-none" style={{ color: theme.subColor }}>COST</span>
+            <span className="text-sm font-cinzel font-black leading-none" style={{ color: theme.textColor }}>{cost}</span>
+          </div>
+          {/* Power — character only */}
+          {!isEvent && (
+            <div className="w-full flex flex-col items-center justify-center" style={{ flex: 1,
+              background: theme.boxBg, border: `1.5px solid ${border.innerBorder}`, borderRadius: 6,
+              backdropFilter: 'blur(6px)', boxShadow: `0 0 8px ${theme.accentLight}` }}>
+              <span className="text-[7px] font-cinzel font-bold" style={{ color: theme.subColor }}>PWR</span>
+              <span className="font-cinzel font-black leading-none text-center"
+                style={{ color: theme.textColor, fontSize: (power?.length || 0) > 4 ? '10px' : '13px',
+                  textShadow: `0 0 8px ${theme.accentLight}` }}>{power || '0'}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Ability text */}
+        <FrameBox className="flex-1" borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
+          <div className="absolute inset-[5px] overflow-y-auto p-1.5" style={{ background: theme.boxBg, backdropFilter: 'blur(6px)' }}>
+            <p className="text-[9px] leading-[1.6] font-inter whitespace-pre-wrap" style={{ color: theme.textColor }}>
+              {abilityText || ''}
+            </p>
+          </div>
+        </FrameBox>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="flex items-center gap-2">
+        {/* Stars — character only */}
+        {!isEvent && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {[1, 2].map(i => (
+              <LuxuryStar key={i} filled={i <= triggerStars} subColor={theme.subColor} size={30} />
+            ))}
+          </div>
+        )}
+
+        {/* Number + Rarity pill */}
+        <div className="flex-1 flex items-center justify-center gap-1.5 px-2"
+          style={{ height: 24, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}60`,
+            borderRadius: 20, backdropFilter: 'blur(6px)' }}>
+          <span className="text-[9px] font-cinzel font-bold tracking-wider" style={{ color: theme.subColor }}>
+            {cardNumber || 'XXX-000'}
+          </span>
+          <span style={{ color: border.innerBorder, fontSize: 9, opacity: 0.7 }}>·</span>
+          <span className="text-[10px] font-cinzel font-black tracking-[0.15em]"
+            style={{ color: theme.textColor, textShadow: `0 0 6px ${theme.accentLight}` }}>
+            {rarity || 'C'}
+          </span>
+        </div>
+
+        {/* Trigger icon — character only */}
+        {!isEvent && (
+          <div className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+            style={{ width: 38, height: 38, background: triggerIcon ? 'transparent' : theme.boxBg,
+              border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 10px ${theme.accentLight}, 0 0 4px ${border.innerBorder}50`,
+              backdropFilter: 'blur(6px)' }}>
+            {triggerIcon
+              ? <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
+              : <svg width="18" height="18" viewBox="0 0 24 24">
+                  <polygon points="12,3 14.5,9.5 21.5,10 16.5,14.5 18.2,21.5 12,17.8 5.8,21.5 7.5,14.5 2.5,10 9.5,9.5"
+                    fill="none" stroke={theme.subColor} strokeWidth="1.2" opacity="0.4" />
+                </svg>
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const CardPreview = forwardRef(function CardPreview({ cardData }, ref) {
-  const {
-    name, seriesIcon, cardImage, quote, level, cost, power,
-    abilityText, cardNumber, rarity, triggerStars, triggerIcon, bgColor, borderStyle,
-  } = cardData
+  const { cardType = 'character', bgColor, borderStyle } = cardData
 
   const theme = BG_THEMES[bgColor] || BG_THEMES.blue
   const border = BORDER_THEMES[borderStyle] || BORDER_THEMES.gold
+  const isStage = cardType === 'stage'
 
-  const borderGradientStyle = border.isRainbow ? {} : { background: border.gradient }
+  // Stage card is landscape (520×370)
+  const W = isStage ? 520 : 370
+  const H = isStage ? 370 : 520
 
   return (
-    <div ref={ref} className="relative flex-shrink-0" style={{ width: 370, height: 520 }}>
-      {/* ── Outer border wrapper ── */}
-      <div
-        className={border.isRainbow ? 'rainbow-border' : ''}
-        style={{
-          position: 'absolute', inset: 0,
-          borderRadius: 16,
-          padding: 4,
-          boxShadow: border.shadow,
-          ...borderGradientStyle,
-        }}
-      >
-        {/* ── Inner card ── */}
-        <div
-          className={`relative w-full h-full overflow-hidden ${theme.patternClass}`}
-          style={{ borderRadius: 13, background: theme.cardBg }}
-        >
-
-          {/* ── Layer 1: Full-bleed card image ── */}
-          {cardImage ? (
-            <img
-              src={cardImage}
-              alt="card artwork"
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ zIndex: 1 }}
-            />
-          ) : (
-            /* Empty placeholder with subtle grid */
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-              style={{
-                zIndex: 1,
-                background: `radial-gradient(ellipse at 50% 40%, ${theme.emptyTint}88 0%, transparent 70%)`,
-              }}
-            >
-              <svg width="52" height="52" viewBox="0 0 24 24" fill="none"
-                stroke={theme.subColor} strokeWidth="0.8" opacity="0.25">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              <span className="text-xs font-cinzel tracking-widest"
-                style={{ color: theme.subColor, opacity: 0.2 }}>ILLUSTRATION</span>
-            </div>
-          )}
-
-          {/* ── Layer 2: Top gradient overlay ── */}
-          <div
-            className="absolute left-0 right-0 top-0 pointer-events-none"
-            style={{
-              height: '42%',
-              zIndex: 2,
-              background: `linear-gradient(to bottom, ${theme.topColor} 0%, ${theme.topColor.replace(',1)', ',0.85)')} 30%, ${theme.topColor.replace(',1)', ',0.4)')} 65%, transparent 100%)`,
-            }}
-          />
-
-          {/* ── Layer 3: Bottom gradient overlay ── */}
-          <div
-            className="absolute left-0 right-0 bottom-0 pointer-events-none"
-            style={{
-              height: '65%',
-              zIndex: 2,
-              background: `linear-gradient(to top, ${theme.bottomColor} 0%, ${theme.bottomColor.replace(',0.97)', ',0.92)')} 25%, ${theme.bottomColor.replace(',0.97)', ',0.75)')} 50%, ${theme.bottomColor.replace(',0.97)', ',0.3)')} 75%, transparent 100%)`,
-            }}
-          />
-
-          {/* ── Layer 4: Content ── */}
-          <div className="absolute inset-0 flex flex-col px-3 py-3 gap-0" style={{ zIndex: 3 }}>
-
-            {/* ── Header: Name + Series Icon ── */}
-            <div className="flex items-center gap-2" style={{ height: 48 }}>
-              <FrameBox
-                className="flex-1"
-                style={{ height: 40, display: 'flex', alignItems: 'center', padding: '0 10px' }}
-                borderColor={border.innerBorder}
-                innerBorderColor={`${border.innerBorder}45`}
-              >
-                <div
-                  className="absolute inset-0 rounded-sm"
-                  style={{ background: `${theme.boxBg}`, backdropFilter: 'blur(4px)' }}
-                />
-                <span
-                  className="font-cinzel font-bold truncate text-sm tracking-wide w-full text-center relative z-10"
-                  style={{ color: theme.textColor, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-                >
-                  {name || 'Card Name'}
-                </span>
-              </FrameBox>
-
-              {/* Series Icon */}
-              <div
-                className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-                style={{
-                  width: 48, height: 48,
-                  background: theme.boxBg,
-                  border: `2px solid ${border.innerBorder}`,
-                  boxShadow: `0 0 10px ${theme.accentLight}`,
-                  backdropFilter: 'blur(6px)',
-                }}
-              >
-                {seriesIcon ? (
-                  <img src={seriesIcon} alt="series" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center gap-0.5">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke={theme.subColor} strokeWidth="1.5" opacity="0.6">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-                    </svg>
-                    <span className="text-[6px] font-cinzel" style={{ color: theme.subColor, opacity: 0.6 }}>ICON</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Spacer: image shows through ── */}
-            <div className="flex-1" />
-
-            {/* ── Quote ── */}
-            {quote ? (
-              <div
-                className="flex items-center justify-center px-3 mb-1.5"
-                style={{
-                  height: 24,
-                  background: 'rgba(0,0,0,0.35)',
-                  borderRadius: 3,
-                  border: `1px solid ${border.innerBorder}30`,
-                  backdropFilter: 'blur(3px)',
-                }}
-              >
-                <span
-                  className="text-[9px] italic text-center leading-tight truncate font-inter"
-                  style={{ color: theme.subColor, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}
-                >
-                  {quote}
-                </span>
-              </div>
-            ) : (
-              <div style={{ height: 8 }} />
-            )}
-
-            {/* ── Stats Row ── */}
-            <div className="flex gap-2 mb-2" style={{ height: 110 }}>
-              {/* Left column: Level + Cost + Power */}
-              <div className="flex flex-col items-center gap-1" style={{ width: 60 }}>
-                {/* Level circle */}
-                <div
-                  className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
-                  style={{
-                    width: 50, height: 50,
-                    background: theme.boxBg,
-                    border: `2px solid ${border.innerBorder}`,
-                    boxShadow: `0 0 10px ${theme.accentLight}, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                    backdropFilter: 'blur(6px)',
-                  }}
-                >
-                  <span className="text-[7px] font-cinzel font-bold leading-none"
-                    style={{ color: theme.subColor }}>LV</span>
-                  <span className="text-xl font-cinzel font-black leading-none"
-                    style={{ color: theme.textColor, textShadow: `0 0 10px ${theme.accentLight}` }}>
-                    {level}
-                  </span>
-                </div>
-
-                {/* Cost circle */}
-                <div
-                  className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
-                  style={{
-                    width: 36, height: 36,
-                    background: theme.boxBg,
-                    border: `1.5px solid ${border.innerBorder}70`,
-                    boxShadow: `0 0 7px ${theme.accentLight}`,
-                    backdropFilter: 'blur(6px)',
-                  }}
-                >
-                  <span className="text-[6.5px] font-cinzel font-bold leading-none"
-                    style={{ color: theme.subColor }}>COST</span>
-                  <span className="text-sm font-cinzel font-black leading-none"
-                    style={{ color: theme.textColor }}>{cost}</span>
-                </div>
-
-                {/* Power */}
-                <div
-                  className="w-full flex flex-col items-center justify-center"
-                  style={{
-                    flex: 1,
-                    background: theme.boxBg,
-                    border: `1.5px solid ${border.innerBorder}`,
-                    borderRadius: 6,
-                    backdropFilter: 'blur(6px)',
-                    boxShadow: `0 0 8px ${theme.accentLight}`,
-                  }}
-                >
-                  <span className="text-[7px] font-cinzel font-bold"
-                    style={{ color: theme.subColor }}>PWR</span>
-                  <span
-                    className="font-cinzel font-black leading-none text-center"
-                    style={{
-                      color: theme.textColor,
-                      fontSize: (power?.length || 0) > 4 ? '10px' : '13px',
-                      textShadow: `0 0 8px ${theme.accentLight}`,
-                    }}
-                  >
-                    {power || '0'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Ability text box */}
-              <FrameBox
-                className="flex-1"
-                style={{ minHeight: 0 }}
-                borderColor={border.innerBorder}
-                innerBorderColor={`${border.innerBorder}40`}
-              >
-                <div
-                  className="absolute inset-[5px] overflow-y-auto p-1.5"
-                  style={{ background: theme.boxBg, backdropFilter: 'blur(6px)' }}
-                >
-                  <p
-                    className="text-[9px] leading-[1.6] font-inter whitespace-pre-wrap"
-                    style={{ color: theme.textColor }}
-                  >
-                    {abilityText || ''}
-                  </p>
-                </div>
-              </FrameBox>
-            </div>
-
-            {/* ── Bottom Bar ── */}
-            <div className="flex items-center gap-2">
-
-              {/* Stars (left) */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {[1, 2].map(i => (
-                  <LuxuryStar
-                    key={i}
-                    filled={i <= triggerStars}
-                    subColor={theme.subColor}
-                    size={30}
-                  />
-                ))}
-              </div>
-
-              {/* Card Number + Rarity pill (center) */}
-              <div
-                className="flex-1 flex items-center justify-center gap-1.5 px-2"
-                style={{
-                  height: 24,
-                  background: theme.boxBg,
-                  border: `1.5px solid ${border.innerBorder}60`,
-                  borderRadius: 20,
-                  backdropFilter: 'blur(6px)',
-                }}
-              >
-                <span className="text-[9px] font-cinzel font-bold tracking-wider"
-                  style={{ color: theme.subColor }}>
-                  {cardNumber || 'XXX-000'}
-                </span>
-                <span style={{ color: border.innerBorder, fontSize: 9, opacity: 0.7 }}>·</span>
-                <span className="text-[10px] font-cinzel font-black tracking-[0.15em]"
-                  style={{ color: theme.textColor, textShadow: `0 0 6px ${theme.accentLight}` }}>
-                  {rarity || 'C'}
-                </span>
-              </div>
-
-              {/* Trigger Icon circle (right) */}
-              <div
-                className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-                style={{
-                  width: 38, height: 38,
-                  background: triggerIcon ? 'transparent' : theme.boxBg,
-                  border: `2px solid ${border.innerBorder}`,
-                  boxShadow: `0 0 10px ${theme.accentLight}, 0 0 4px ${border.innerBorder}50`,
-                  backdropFilter: 'blur(6px)',
-                  flexShrink: 0,
-                }}
-              >
-                {triggerIcon ? (
-                  <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24"
-                    style={{ filter: 'drop-shadow(0 0 2px currentColor)' }}>
-                    <polygon
-                      points="12,3 14.5,9.5 21.5,10 16.5,14.5 18.2,21.5 12,17.8 5.8,21.5 7.5,14.5 2.5,10 9.5,9.5"
-                      fill="none"
-                      stroke={theme.subColor}
-                      strokeWidth="1.2"
-                      opacity="0.45"
-                    />
-                  </svg>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* ── Inner frame line ── */}
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              inset: 5,
-              borderRadius: 9,
-              border: `1px solid ${border.innerBorder}25`,
-              zIndex: 10,
-            }}
-          />
-        </div>
-      </div>
+    <div ref={ref} className="relative flex-shrink-0" style={{ width: W, height: H }}>
+      <CardShell theme={theme} border={border} cardImage={cardData.cardImage}>
+        {isStage
+          ? <StageCardLayout cardData={cardData} theme={theme} border={border} />
+          : <CharacterLayout cardData={cardData} theme={theme} border={border} />
+        }
+      </CardShell>
     </div>
   )
 })
