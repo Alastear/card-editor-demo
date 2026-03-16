@@ -1,4 +1,6 @@
 import { forwardRef } from 'react'
+import { FaStarOfDavid } from 'react-icons/fa'
+import { TRIGGER_ICON_MAP } from '../triggerIcons'
 
 // Card inner dimensions: 362 x 512px (370x520 minus 4px border padding each side)
 
@@ -94,7 +96,7 @@ const BORDER_THEMES = {
   },
 }
 
-// Luxury trigger star — circular badge style
+// Luxury trigger star — circular badge with FaStarOfDavid
 const LuxuryStar = ({ filled, subColor, size = 28 }) => (
   <div
     style={{
@@ -115,27 +117,11 @@ const LuxuryStar = ({ filled, subColor, size = 28 }) => (
       backdropFilter: 'blur(2px)',
     }}
   >
-    <svg
-      width={size * 0.6}
-      height={size * 0.6}
-      viewBox="0 0 24 24"
-      style={{ filter: filled ? 'drop-shadow(0 0 3px rgba(255,215,0,0.8))' : 'none' }}
-    >
-      <polygon
-        points="12,2 14.8,8.6 22,9.5 16.8,14.5 18.4,21.5 12,17.9 5.6,21.5 7.2,14.5 2,9.5 9.2,8.6"
-        fill={filled ? '#ffd700' : 'none'}
-        stroke={filled ? '#b8860b' : subColor + '50'}
-        strokeWidth={filled ? '0.8' : '1.2'}
-        strokeLinejoin="round"
-      />
-      {filled && (
-        <polygon
-          points="12,5 14,9.8 19.5,10.5 15.5,14 16.7,19.5 12,16.9 7.3,19.5 8.5,14 4.5,10.5 10,9.8"
-          fill="rgba(255,255,200,0.25)"
-          stroke="none"
-        />
-      )}
-    </svg>
+    <FaStarOfDavid
+      size={size * 0.52}
+      color={filled ? '#ffd700' : subColor + '55'}
+      style={{ filter: filled ? 'drop-shadow(0 0 3px rgba(255,215,0,0.9))' : 'none' }}
+    />
   </div>
 )
 
@@ -197,19 +183,31 @@ function CardShell({ theme, border, cardImage, children }) {
   )
 }
 
-// ── Shared: series icon circle ──
-function SeriesCircle({ seriesIcon, theme, border }) {
+// ── Shared: trigger icon circle (top-right, shows selected react-icon) ──
+function TriggerIconCircle({ triggerIconType, theme, border }) {
+  const entry = triggerIconType ? TRIGGER_ICON_MAP[triggerIconType] : null
+  const IconComp = entry?.Icon
   return (
     <div className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-      style={{ width: 48, height: 48, background: theme.boxBg, border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 10px ${theme.accentLight}`, backdropFilter: 'blur(6px)' }}>
+      style={{ width: 48, height: 48, background: theme.boxBg, border: `2px solid ${border.innerBorder}`,
+        boxShadow: `0 0 12px ${theme.accentLight}, inset 0 1px 0 rgba(255,255,255,0.08)`, backdropFilter: 'blur(6px)', flexShrink: 0 }}>
+      {IconComp
+        ? <IconComp size={22} color={theme.textColor} style={{ filter: `drop-shadow(0 0 4px ${theme.accentLight})` }} />
+        : <FaStarOfDavid size={16} color={theme.subColor} style={{ opacity: 0.3 }} />
+      }
+    </div>
+  )
+}
+
+// ── Shared: series icon panel (bottom-right, landscape 2:1) ──
+function SeriesPanel({ seriesIcon, theme, border }) {
+  return (
+    <div className="flex-shrink-0 overflow-hidden flex items-center justify-center"
+      style={{ width: 64, height: 32, borderRadius: 5, background: seriesIcon ? 'transparent' : theme.boxBg,
+        border: `1.5px solid ${border.innerBorder}`, boxShadow: `0 0 8px ${theme.accentLight}`, backdropFilter: 'blur(6px)' }}>
       {seriesIcon
         ? <img src={seriesIcon} alt="series" className="w-full h-full object-cover" />
-        : <div className="flex flex-col items-center gap-0.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.subColor} strokeWidth="1.5" opacity="0.6">
-              <circle cx="12" cy="8" r="4" /><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-            </svg>
-            <span className="text-[6px] font-cinzel" style={{ color: theme.subColor, opacity: 0.6 }}>ICON</span>
-          </div>
+        : <span className="text-[7px] font-cinzel" style={{ color: theme.subColor, opacity: 0.5 }}>SERIES</span>
       }
     </div>
   )
@@ -217,10 +215,10 @@ function SeriesCircle({ seriesIcon, theme, border }) {
 
 // ── Stage card (landscape 520×370) ──
 function StageCardLayout({ cardData, theme, border }) {
-  const { name, seriesIcon, quote, abilityText, cardNumber, rarity, triggerIcon } = cardData
+  const { name, seriesIcon, quote, abilityText, cardNumber, rarity, triggerIconType } = cardData
   return (
     <div className="absolute inset-0 flex flex-col px-3 py-3 gap-1.5">
-      {/* Header */}
+      {/* Header: Name + Trigger icon (top-right) */}
       <div className="flex items-center gap-2" style={{ height: 44 }}>
         <FrameBox className="flex-1" style={{ height: 38, display: 'flex', alignItems: 'center', padding: '0 10px' }}
           borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
@@ -230,7 +228,7 @@ function StageCardLayout({ cardData, theme, border }) {
             {name || 'Stage Name'}
           </span>
         </FrameBox>
-        <SeriesCircle seriesIcon={seriesIcon} theme={theme} border={border} />
+        <TriggerIconCircle triggerIconType={triggerIconType} theme={theme} border={border} />
       </div>
 
       {/* Spacer — shows image */}
@@ -245,41 +243,26 @@ function StageCardLayout({ cardData, theme, border }) {
         </div>
       )}
 
-      {/* Ability + Trigger row */}
-      <div className="flex gap-2" style={{ height: 100 }}>
-        <FrameBox className="flex-1" borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
+      {/* Ability row — full width */}
+      <div style={{ height: 100 }}>
+        <FrameBox className="w-full h-full" borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
           <div className="absolute inset-[5px] overflow-y-auto p-1.5" style={{ background: theme.boxBg, backdropFilter: 'blur(6px)' }}>
             <p className="text-[9px] leading-relaxed font-inter whitespace-pre-wrap" style={{ color: theme.textColor }}>
               {abilityText || ''}
             </p>
           </div>
         </FrameBox>
-
-        {/* Trigger icon — tall, right side */}
-        <div className="flex-shrink-0 flex flex-col items-center justify-center gap-1">
-          <div className="rounded-full overflow-hidden flex items-center justify-center"
-            style={{ width: 52, height: 52, background: triggerIcon ? 'transparent' : theme.boxBg,
-              border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 12px ${theme.accentLight}, 0 0 4px ${border.innerBorder}50`, backdropFilter: 'blur(6px)' }}>
-            {triggerIcon
-              ? <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
-              : <svg width="22" height="22" viewBox="0 0 24 24">
-                  <polygon points="12,3 14.5,9.5 21.5,10 16.5,14.5 18.2,21.5 12,17.8 5.8,21.5 7.5,14.5 2.5,10 9.5,9.5"
-                    fill="none" stroke={theme.subColor} strokeWidth="1.2" opacity="0.4" />
-                </svg>
-            }
-          </div>
-          <span className="text-[7px] font-cinzel font-bold" style={{ color: theme.subColor, opacity: 0.7 }}>TRIGGER</span>
-        </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="flex items-center gap-2" style={{ height: 24 }}>
+      {/* Bottom bar: Number·Rarity + Series icon (bottom-right) */}
+      <div className="flex items-center gap-2" style={{ height: 34 }}>
         <div className="flex-1 flex items-center justify-center gap-1.5 px-2"
           style={{ height: 22, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}55`, borderRadius: 20, backdropFilter: 'blur(6px)' }}>
           <span className="text-[9px] font-cinzel font-bold tracking-wider" style={{ color: theme.subColor }}>{cardNumber || 'XXX-000'}</span>
           <span style={{ color: border.innerBorder, fontSize: 9, opacity: 0.7 }}>·</span>
           <span className="text-[10px] font-cinzel font-black tracking-[0.15em]" style={{ color: theme.textColor }}>{rarity || 'C'}</span>
         </div>
+        <SeriesPanel seriesIcon={seriesIcon} theme={theme} border={border} />
       </div>
     </div>
   )
@@ -288,11 +271,11 @@ function StageCardLayout({ cardData, theme, border }) {
 // ── Character / Event shared layout ──
 function CharacterLayout({ cardData, theme, border }) {
   const { name, seriesIcon, quote, level, cost, power, abilityText, cardNumber, rarity,
-          triggerStars, triggerIcon, cardType } = cardData
+          triggerStars, triggerIconType, cardType } = cardData
   const isEvent = cardType === 'event'
   return (
     <div className="absolute inset-0 flex flex-col px-3 py-3 gap-0">
-      {/* Header */}
+      {/* Header: Name + Trigger icon (top-right) */}
       <div className="flex items-center gap-2" style={{ height: 48 }}>
         <FrameBox className="flex-1" style={{ height: 40, display: 'flex', alignItems: 'center', padding: '0 10px' }}
           borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}45`}>
@@ -302,24 +285,26 @@ function CharacterLayout({ cardData, theme, border }) {
             {name || 'Card Name'}
           </span>
         </FrameBox>
-        <SeriesCircle seriesIcon={seriesIcon} theme={theme} border={border} />
+        {/* Trigger icon circle — top-right */}
+        {!isEvent && <TriggerIconCircle triggerIconType={triggerIconType} theme={theme} border={border} />}
       </div>
 
       <div className="flex-1" />
 
       {/* Quote */}
-      {quote ? (
-        <div className="flex items-center justify-center px-3 mb-1.5"
-          style={{ height: 24, background: 'rgba(0,0,0,0.35)', borderRadius: 3, border: `1px solid ${border.innerBorder}30`, backdropFilter: 'blur(3px)' }}>
-          <span className="text-[9px] italic text-center leading-tight truncate font-inter"
-            style={{ color: theme.subColor, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{quote}</span>
-        </div>
-      ) : <div style={{ height: 8 }} />}
+      {quote
+        ? <div className="flex items-center justify-center px-3 mb-1.5"
+            style={{ height: 24, background: 'rgba(0,0,0,0.35)', borderRadius: 3, border: `1px solid ${border.innerBorder}30`, backdropFilter: 'blur(3px)' }}>
+            <span className="text-[9px] italic text-center leading-tight truncate font-inter"
+              style={{ color: theme.subColor, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{quote}</span>
+          </div>
+        : <div style={{ height: 8 }} />
+      }
 
       {/* Stats row */}
       <div className="flex gap-2 mb-2" style={{ height: 110 }}>
-        {/* Level + Cost + Power column */}
         <div className="flex flex-col items-center gap-1" style={{ width: 60 }}>
+          {/* Level */}
           <div className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
             style={{ width: 50, height: 50, background: theme.boxBg, border: `2px solid ${border.innerBorder}`,
               boxShadow: `0 0 10px ${theme.accentLight}, inset 0 1px 0 rgba(255,255,255,0.08)`, backdropFilter: 'blur(6px)' }}>
@@ -327,6 +312,7 @@ function CharacterLayout({ cardData, theme, border }) {
             <span className="text-xl font-cinzel font-black leading-none"
               style={{ color: theme.textColor, textShadow: `0 0 10px ${theme.accentLight}` }}>{level}</span>
           </div>
+          {/* Cost */}
           <div className="rounded-full flex flex-col items-center justify-center flex-shrink-0"
             style={{ width: 36, height: 36, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}70`,
               boxShadow: `0 0 7px ${theme.accentLight}`, backdropFilter: 'blur(6px)' }}>
@@ -346,7 +332,7 @@ function CharacterLayout({ cardData, theme, border }) {
           )}
         </div>
 
-        {/* Ability text */}
+        {/* Ability */}
         <FrameBox className="flex-1" borderColor={border.innerBorder} innerBorderColor={`${border.innerBorder}40`}>
           <div className="absolute inset-[5px] overflow-y-auto p-1.5" style={{ background: theme.boxBg, backdropFilter: 'blur(6px)' }}>
             <p className="text-[9px] leading-[1.6] font-inter whitespace-pre-wrap" style={{ color: theme.textColor }}>
@@ -356,8 +342,8 @@ function CharacterLayout({ cardData, theme, border }) {
         </FrameBox>
       </div>
 
-      {/* Bottom bar */}
-      <div className="flex items-center gap-2">
+      {/* Bottom bar: Stars + Number·Rarity + Series icon (bottom-right) */}
+      <div className="flex items-center gap-2" style={{ height: 36 }}>
         {/* Stars — character only */}
         {!isEvent && (
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -366,7 +352,6 @@ function CharacterLayout({ cardData, theme, border }) {
             ))}
           </div>
         )}
-
         {/* Number + Rarity pill */}
         <div className="flex-1 flex items-center justify-center gap-1.5 px-2"
           style={{ height: 24, background: theme.boxBg, border: `1.5px solid ${border.innerBorder}60`,
@@ -380,22 +365,8 @@ function CharacterLayout({ cardData, theme, border }) {
             {rarity || 'C'}
           </span>
         </div>
-
-        {/* Trigger icon — character only */}
-        {!isEvent && (
-          <div className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-            style={{ width: 38, height: 38, background: triggerIcon ? 'transparent' : theme.boxBg,
-              border: `2px solid ${border.innerBorder}`, boxShadow: `0 0 10px ${theme.accentLight}, 0 0 4px ${border.innerBorder}50`,
-              backdropFilter: 'blur(6px)' }}>
-            {triggerIcon
-              ? <img src={triggerIcon} alt="trigger" className="w-full h-full object-cover" />
-              : <svg width="18" height="18" viewBox="0 0 24 24">
-                  <polygon points="12,3 14.5,9.5 21.5,10 16.5,14.5 18.2,21.5 12,17.8 5.8,21.5 7.5,14.5 2.5,10 9.5,9.5"
-                    fill="none" stroke={theme.subColor} strokeWidth="1.2" opacity="0.4" />
-                </svg>
-            }
-          </div>
-        )}
+        {/* Series icon — landscape rectangle, bottom-right */}
+        <SeriesPanel seriesIcon={seriesIcon} theme={theme} border={border} />
       </div>
     </div>
   )

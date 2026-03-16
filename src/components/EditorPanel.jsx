@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import CropModal from './CropModal'
+import { TRIGGER_ICON_MAP } from '../triggerIcons'
 
 const BG_OPTIONS = [
   { value: 'red', label: 'Red', bg: 'linear-gradient(135deg, #7a0000, #c0392b)', text: '#fff' },
@@ -157,75 +158,35 @@ const ImageUpload = ({ label, value, onChange, aspect = 1, cropTitle = 'Crop Ima
   )
 }
 
-// Circular trigger icon upload
-const TriggerIconUpload = ({ value, onChange }) => {
-  const inputRef = useRef(null)
-  const [pendingSrc, setPendingSrc] = useState(null)
-
-  const handleFile = (e) => {
-    const file = e.target.files[0]
-    e.target.value = ''
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => setPendingSrc(ev.target.result)
-    reader.readAsDataURL(file)
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div
-        onClick={() => inputRef.current?.click()}
-        className="relative group"
-        style={{
-          width: 56, height: 56,
-          background: value ? 'transparent' : '#1a1d2e',
-          border: `2px ${value ? 'solid' : 'dashed'} ${value ? '#ffd700' : '#444'}`,
-          borderRadius: '50%',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: value ? '0 0 10px rgba(255,215,0,0.3)' : 'none',
-        }}
-      >
-        {value ? (
-          <>
-            <img src={value} alt="trigger icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center gap-0.5 text-gray-600 group-hover:text-blue-400 transition-colors">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-          </div>
-        )}
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-      </div>
-      {value && (
-        <button onClick={() => onChange(null)} className="text-[10px] text-red-400 hover:text-red-300 font-inter">
-          × Remove
-        </button>
-      )}
-      {pendingSrc && (
-        <CropModal
-          imageSrc={pendingSrc}
-          aspect={1}
-          title="Crop Trigger Icon"
-          onConfirm={cropped => { onChange(cropped); setPendingSrc(null) }}
-          onCancel={() => setPendingSrc(null)}
-        />
-      )}
+// Trigger icon selector — pick from react-icons
+const TriggerIconSelector = ({ value, onChange }) => (
+  <div>
+    <div className="grid grid-cols-4 gap-1.5">
+      {Object.entries(TRIGGER_ICON_MAP).map(([key, entry]) => {
+        const selected = value === key
+        const IconComp = entry.Icon
+        return (
+          <button
+            key={key}
+            onClick={() => onChange(selected ? null : key)}
+            title={entry.label}
+            className="flex flex-col items-center gap-1 py-2 rounded-lg transition-all"
+            style={{
+              background: selected ? 'rgba(79,142,255,0.18)' : '#1a1d2e',
+              border: `1.5px solid ${selected ? '#4f8eff' : '#333'}`,
+              boxShadow: selected ? '0 0 10px rgba(79,142,255,0.3)' : 'none',
+            }}
+          >
+            <IconComp size={18} color={selected ? '#a8c8ff' : '#555'} />
+            <span className="text-[7px] font-cinzel leading-none" style={{ color: selected ? '#a8c8ff' : '#555' }}>
+              {entry.label}
+            </span>
+          </button>
+        )
+      })}
     </div>
-  )
-}
+  </div>
+)
 
 // Symbol quick-insert buttons
 const SymbolButtons = ({ abilityText, updateCard }) => (
@@ -261,7 +222,7 @@ export default function EditorPanel({ cardData, updateCard }) {
   const {
     cardType = 'character',
     name, seriesIcon, cardImage, quote, level, cost, power,
-    abilityText, cardNumber, rarity, triggerStars, triggerIcon, bgColor, borderStyle,
+    abilityText, cardNumber, rarity, triggerStars, triggerIconType, bgColor, borderStyle,
   } = cardData
 
   const isCharacter = cardType === 'character'
@@ -375,10 +336,10 @@ export default function EditorPanel({ cardData, updateCard }) {
               label="Series Icon"
               value={seriesIcon}
               onChange={v => updateCard('seriesIcon', v)}
-              aspect={1}
+              aspect={2}
               cropTitle="Crop Series Icon"
               hint="Upload series logo"
-              previewHeight={72}
+              previewHeight={56}
             />
           </div>
         </div>
@@ -513,7 +474,7 @@ export default function EditorPanel({ cardData, updateCard }) {
               </div>
               <div className="flex-shrink-0">
                 <Label>Trigger Icon</Label>
-                <TriggerIconUpload value={triggerIcon} onChange={v => updateCard('triggerIcon', v)} />
+                <TriggerIconSelector value={triggerIconType} onChange={v => updateCard('triggerIconType', v)} />
               </div>
             </div>
           )}
@@ -522,7 +483,7 @@ export default function EditorPanel({ cardData, updateCard }) {
           {isStage && (
             <div>
               <Label>Trigger Icon</Label>
-              <TriggerIconUpload value={triggerIcon} onChange={v => updateCard('triggerIcon', v)} />
+              <TriggerIconSelector value={triggerIconType} onChange={v => updateCard('triggerIconType', v)} />
             </div>
           )}
         </div>
