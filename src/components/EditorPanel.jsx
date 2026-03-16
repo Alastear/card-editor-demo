@@ -341,7 +341,7 @@ export default function EditorPanel({ cardData, updateCard }) {
             label="Card Image"
             value={cardImage}
             onChange={v => updateCard('cardImage', v)}
-            aspect={1.38}
+            aspect={370 / 520}
             cropTitle="Crop Card Artwork"
             hint="Upload card artwork"
             previewHeight={120}
